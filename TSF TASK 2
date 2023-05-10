@@ -1,0 +1,148 @@
+# STEP 1
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+import sklearn.metrics as sm
+import seaborn as sns
+
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+
+data= pd.read_csv('Iris.csv')
+
+data.head()
+
+data.tail()
+
+data.info() #TO GET DETAILED INFORMATION ABOUT THE DATA
+
+
+
+data.describe() #TO OBSERVE THE STATISTICAL VALUES 
+
+data.isnull().sum() # TO CHECK THE MISSING VALUES 
+
+FROM ABOVE FUNCTION WE FIND THAT WE HAVE NO MISSING VALUES IN THE DATA AND WE ARE GOOD TO GO.
+
+# NOW WE WILL BUILD BOXPLOTS TO SEE IF THERE ARE ANY OUTLIERS
+
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+plt.figure(figsize=(30,6))
+
+plt.subplot(1,4,1)
+sns.boxplot(data["SepalLengthCm"])
+
+plt.subplot(1,4,2)
+sns.boxplot(data["SepalWidthCm"])
+
+plt.subplot(1,4,3)
+sns.boxplot(data["PetalLengthCm"])
+
+plt.subplot(1,4,4)
+sns.boxplot(data["PetalWidthCm"])
+
+plt.show()
+
+# TRYING TO SEE IF THERE IS ANY CORRELATION BETWEEN THE VARIABLES
+
+cols=data.iloc[:,1:5]
+cols.corr(method='pearson')
+
+THE DATA SET DOES NOT CONTAIN MISSING VALUES AND OUTLIERS.
+
+# STEP 2: DATA VISUALIZATION
+
+sns.pairplot(data,hue='Species')
+
+# STEP 3 : FINDING THE OPTIMAL K-VALUE.
+
+Steps to follow
+
+1.Elbow method
+
+2.Silhouette analysis
+
+newdata= data.drop('Species',1)
+newdata.head()
+
+wcss = []
+
+for i in range(1,6):  
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state= 42)  
+    kmeans.fit(newdata)  
+    wcss.append(kmeans.inertia_)
+
+plt.plot(range(1,6), wcss)  
+plt.title('The Elobw Method Graph')  
+plt.xlabel('Number of clusters(k)')  
+plt.ylabel('wcss')  
+plt.show()  
+
+# silhouette analysis
+range_n_clusters = [3,4,5]
+
+for num_clusters in range_n_clusters:
+    kmeans = KMeans(n_clusters=num_clusters, max_iter=50)
+    kmeans.fit(newdata)
+    
+    cluster_labels = kmeans.labels_
+    
+    silhouetteavg= silhouette_score(newdata, cluster_labels)
+    print("For n_clusters={0}, the silhouette score is {1}".format(num_clusters, silhouetteavg))
+
+WE CAN FIND OPTIMAL CLUSTERING FOR 3 CLUSTERS
+
+#  STEP 4 : BUILDING THE MODEL WITH 3 CLUSTERS
+
+kmeans = KMeans(n_clusters= 3, init='k-means++', max_iter=300, n_init=10, random_state = 0) 
+y_kmeans= kmeans.fit_predict(newdata)
+
+x = data.iloc[:,[0,1,2,3]].values
+
+#visualising the clusters
+plt.scatter(x[y_kmeans == 0,0], x[y_kmeans == 0,1], s=100, c='purple', label='Iris-setosa')
+plt.scatter(x[y_kmeans == 1,0], x[y_kmeans == 1,1], s=100, c='yellow', label='Iris-versicolour')
+plt.scatter(x[y_kmeans == 2,0], x[y_kmeans == 2,1], s=100, c='pink', label='Iris-virginica')
+
+#plotting the centroids of clusters
+plt.scatter(kmeans.cluster_centers_[:,0],kmeans.cluster_centers_[:,1], s=100, c='red', label='centroids')
+plt.legend()
+
+
+# Building 3-D scatterplot using matplotlib
+fig = plt.figure(figsize = (8,8))
+ax= fig.add_subplot(111,projection = '3d')
+plt.scatter(x[y_kmeans == 0,0], x[y_kmeans == 0,1], s=100, c='purple', label='Iris-setosa')
+plt.scatter(x[y_kmeans == 1,0], x[y_kmeans == 1,1], s=100, c='yellow', label='Iris-versicolour')
+plt.scatter(x[y_kmeans == 2,0], x[y_kmeans == 2,1], s=100, c='pink', label='Iris-virginica')
+
+
+
+plt.figure(figsize=(15,6))
+
+plt.subplot(1,4,1)
+sns.boxplot(y= data['SepalLengthCm'], x=data['Species'])
+plt.title("Sepal Length\n")
+
+plt.subplot(1,4,2)
+sns.boxplot(y= data['SepalWidthCm'], x=data['Species'])
+plt.title("Sepal Width\n")
+
+plt.subplot(1,4,3)
+sns.boxplot(y= data['PetalLengthCm'], x=data['Species'])
+plt.title("Petal Length\n")
+
+
+plt.subplot(1,4,4)
+sns.boxplot(y= data['PetalWidthCm'], x=data['Species'])
+plt.title("Petal Width\n")
+
+plt.show()
+CONCLUSION : THE OPTIMUM NUMBER OF CLUSTERS ARE 3 AND IT WAS ALSO VISUALISED
+THANKYOU
+TASK SUBMITTTED BY APOORVA SHARMA
